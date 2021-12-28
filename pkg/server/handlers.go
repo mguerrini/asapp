@@ -1,6 +1,7 @@
 package server
 import (
 	"context"
+	"github.com/challenge/pkg/modules/server"
 	"net/http"
 )
 
@@ -12,28 +13,22 @@ func NewRequestHandler() *RequestHandler {
 	return &RequestHandler{}
 }
 
-func (ah *RequestHandler) ValidateUserHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) bool {
+func (ah *RequestHandler) ValidateUserHandler(ctx context.Context, w http.ResponseWriter, r *http.Request, next server.HttpInterceptor)  {
 	if false {
 		// TODO: validate token
 		http.Error(w, "Invalid token", http.StatusUnauthorized)
-		return false
+		return
 	}
 
-	return true
+	next.Handle(ctx, w, r)
 }
 
-func (ah *RequestHandler) TransactionScopeHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) bool {
-	if false {
-		// TODO: validate token
-		http.Error(w, "Invalid token", http.StatusUnauthorized)
-		return false
-	}
-
-	return true
+func (ah *RequestHandler) TransactionScopeHandler(ctx context.Context, w http.ResponseWriter, r *http.Request, next server.HttpInterceptor)  {
+	next.Handle(ctx, w, r)
 }
 
-func (ah *RequestHandler) ErrorHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) bool {
-	return true
+func (ah *RequestHandler) ErrorHandler(ctx context.Context, w http.ResponseWriter, r *http.Request, next server.HttpInterceptor)  {
+	next.Handle(ctx, w, r)
 }
 
 

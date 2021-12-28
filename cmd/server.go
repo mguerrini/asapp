@@ -29,27 +29,29 @@ func main() {
 	// Configure endpoints
 	// HEALTH
 	checkEndpointHandler := server.NewhttpHandler()
-	checkEndpointHandler.AddMethodHandlerFunc(http.MethodPost, controller.Check)
+	checkEndpointHandler.AddInterceptorFunc(http.MethodPost, handler.ErrorHandler)
+	checkEndpointHandler.AddInterceptorFunc(http.MethodPost, handler.TransactionScopeHandler)
+	checkEndpointHandler.AddHandlerFunc(http.MethodPost, controller.Check)
 
 	http.HandleFunc(CheckEndpoint, checkEndpointHandler.Handle)
 
 	// USERS
 	usersHandler := server.NewhttpHandler()
-	usersHandler.AddMethodHandlerFunc(http.MethodPost, controller.CreateUser)
+	usersHandler.AddHandlerFunc(http.MethodPost, controller.CreateUser)
 	http.HandleFunc(UsersEndpoint, usersHandler.Handle)
 
 	//LOGIN
 	authHandler := server.NewhttpHandler()
-	authHandler.AddMethodHandlerFunc(http.MethodPost, controller.Login)
+	authHandler.AddHandlerFunc(http.MethodPost, controller.Login)
 	http.HandleFunc(LoginEndpoint, authHandler.Handle)
 
 	//MESSAGES
 	msgsHandler := server.NewhttpHandler()
-	msgsHandler.AddCancelMethodHandlerFunc(http.MethodPost, handler.ValidateUserHandler)
-	msgsHandler.AddMethodHandlerFunc(http.MethodPost, controller.SendMessage)
+	msgsHandler.AddInterceptorFunc(http.MethodPost, handler.ValidateUserHandler)
+	msgsHandler.AddHandlerFunc(http.MethodPost, controller.SendMessage)
 
-	msgsHandler.AddCancelMethodHandlerFunc(http.MethodGet, handler.ValidateUserHandler)
-	msgsHandler.AddMethodHandlerFunc(http.MethodGet, controller.GetMessages)
+	msgsHandler.AddInterceptorFunc(http.MethodGet, handler.ValidateUserHandler)
+	msgsHandler.AddHandlerFunc(http.MethodGet, controller.GetMessages)
 	http.HandleFunc(MessagesEndpoint, msgsHandler.Handle)
 
 	// Start server

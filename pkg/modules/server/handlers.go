@@ -7,21 +7,23 @@ import (
 )
 
 type HttpHandler struct {
-	Root     *StageHttpHandler
-	GetRoot  *StageHttpHandler
-	PostRoot *StageHttpHandler
+	GetRoot  *stageHttpHandler
+	PostRoot *stageHttpHandler
+}
+
+type HttpInterceptor interface {
+	Handle(ctx context.Context, w http.ResponseWriter, r *http.Request)
 }
 
 
-//Return a boolean that indicates if can continue with the execution
-type HttpCancelHandlerFunc func(ctx context.Context, w http.ResponseWriter, r *http.Request) bool
-
 type HttpHandlerFunc func(ctx context.Context, w http.ResponseWriter, r *http.Request)
 
+type HttpInterceptorHandlerFunc func(ctx context.Context, w http.ResponseWriter, r *http.Request, next HttpInterceptor)
 
-type StageHttpHandler struct {
-	Handler HttpCancelHandlerFunc
-	Next    *StageHttpHandler
+
+type stageHttpHandler struct {
+	Handler HttpInterceptorHandlerFunc
+	Next    *stageHttpHandler
 }
 
 
@@ -29,66 +31,30 @@ func NewhttpHandler() *HttpHandler {
 	return &HttpHandler{}
 }
 
-func (h *HttpHandler) AddCancelHandlerFunc(handle HttpCancelHandlerFunc) *HttpHandler {
-	handler := &StageHttpHandler{
+func (h *HttpHandler) AddInterceptorFunc(httpMethod string, handle HttpInterceptorHandlerFunc) *HttpHandler {
+	handler := &stageHttpHandler{
 		Handler: handle,
 		Next:    nil,
 	}
 
-	return h.AddHandler(handler)
+	return h.AddHandler(httpMethod, handler)
 }
 
-func (h *HttpHandler) AddHandlerFunc(handle HttpHandlerFunc) *HttpHandler {
+func (h *HttpHandler) AddHandlerFunc(httpMethod string, handle HttpHandlerFunc) *HttpHandler {
 
-	adapter := func(ctx context.Context, w http.ResponseWriter, r *http.Request) bool {
+	adapter := func(ctx context.Context, w http.ResponseWriter, r *http.Request, next HttpInterceptor)  {
 		handle(ctx, w, r)
-		return true
 	}
 
-	handler := &StageHttpHandler{
+	handler := &stageHttpHandler{
 		Handler: adapter,
 		Next:    nil,
 	}
 
-	return h.AddHandler(handler)
+	return h.AddHandler(httpMethod, handler)
 }
 
-func (h *HttpHandler) AddHandler( handle *StageHttpHandler) *HttpHandler {
-	if h.Root == nil {
-		h.Root = handle
-		return h
-	}
-
-	h.Root.AddNext(handle)
-	return h
-}
-
-
-func (h *HttpHandler) AddCancelMethodHandlerFunc(httpMethod string, handle HttpCancelHandlerFunc) *HttpHandler {
-	handler := &StageHttpHandler{
-		Handler: handle,
-		Next:    nil,
-	}
-
-	return h.AddMethodHandler(httpMethod, handler)
-}
-
-func (h *HttpHandler) AddMethodHandlerFunc(httpMethod string, handle HttpHandlerFunc) *HttpHandler {
-
-	adapter := func(ctx context.Context, w http.ResponseWriter, r *http.Request) bool {
-		handle(ctx, w, r)
-		return true
-	}
-
-	handler := &StageHttpHandler{
-		Handler: adapter,
-		Next:    nil,
-	}
-
-	return h.AddMethodHandler(httpMethod, handler)
-}
-
-func (h *HttpHandler) AddMethodHandler(httpMethod string, handle *StageHttpHandler) *HttpHandler {
+func (h *HttpHandler) AddHandler(httpMethod string, handle *stageHttpHandler) *HttpHandler {
 	if httpMethod == http.MethodGet {
 		if h.GetRoot == nil {
 			h.GetRoot = handle
@@ -104,11 +70,10 @@ func (h *HttpHandler) AddMethodHandler(httpMethod string, handle *StageHttpHandl
 
 		h.PostRoot.AddNext(handle)
 	} else {
-		h.AddHandler(handle)
+		panic("Invalid method")
 	}
 	return h
 }
-
 
 
 func (h *HttpHandler) Handle (w http.ResponseWriter, r *http.Request) {
@@ -119,31 +84,32 @@ func (h *HttpHandler) Handle (w http.ResponseWriter, r *http.Request) {
 
 	if h.GetRoot != nil || h.PostRoot != nil {
 		if h.GetRoot != nil && method == http.MethodGet {
-			h.GetRoot.Handle(r.Context(), w, r)
+			h.GetRoot.doHandle(r.Context(), w, r)
 		} else if h.PostRoot != nil && method == http.MethodPost {
-			h.PostRoot.Handle(r.Context(), w, r)
+			h.PostRoot.doHandle(r.Context(), w, r)
 		} else {
 			http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 			return
 		}
 	} else {
-		if h.Root == nil {
-			return
-		}
-
-		h.Root.Handle(r.Context(), w, r)
+		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+		return
 	}
 }
 
-func (h *StageHttpHandler) Handle (ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	cont := h.Handler(ctx, w, r)
-
-	if cont && h.Next != nil {
-		h.Next.Handle(ctx, w, r)
-	}
+func (h *stageHttpHandler) doHandle (ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	h.Handler(ctx, w, r, h)
 }
 
-func (h *StageHttpHandler) AddNext (handle *StageHttpHandler) {
+func (h *stageHttpHandler) Handle (ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	if h.Next == nil {
+		return
+	}
+
+	h.Next.doHandle(ctx, w, r)
+}
+
+func (h *stageHttpHandler) AddNext (handle *stageHttpHandler) {
 	if h.Next == nil {
 		h.Next = handle
 		return
