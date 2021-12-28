@@ -1,0 +1,19 @@
+root:
+  startup:
+    session_name: "test"
+    environment: "local"
+
+  databases:
+    test:
+      type: "none"
+    local:
+      type: "sql"
+      connection_string: ""
+    production:
+      type: "sql"
+      connection_string: ""
+
+  repositories:
+    #options: memory, sql
+    factory: "memory"
+

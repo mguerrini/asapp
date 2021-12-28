@@ -1,11 +1,13 @@
 package main
 
 import (
+	"github.com/challenge/pkg/modules/server"
 	"log"
 	"net/http"
 
-	"github.com/challenge/pkg/auth"
 	"github.com/challenge/pkg/controller"
+	host "github.com/challenge/pkg/server"
+
 )
 
 const (
@@ -17,51 +19,38 @@ const (
 )
 
 func main() {
-	h := controller.Handler{}
+	host.StartServer() //initialize components
+	defer host.FinishServer() //finish components
+
+	//create handler
+	controller := controller.NewController() // controller.Handler{}
+	handler := host.NewRequestHandler()
 
 	// Configure endpoints
-	// Health
-	http.HandleFunc(CheckEndpoint, func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
-			return
-		}
+	// HEALTH
+	checkEndpointHandler := server.NewhttpHandler()
+	checkEndpointHandler.AddMethodHandlerFunc(http.MethodPost, controller.Check)
 
-		h.Check(w, r)
-	})
+	http.HandleFunc(CheckEndpoint, checkEndpointHandler.Handle)
 
-	// Users
-	http.HandleFunc(UsersEndpoint, func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
-			return
-		}
+	// USERS
+	usersHandler := server.NewhttpHandler()
+	usersHandler.AddMethodHandlerFunc(http.MethodPost, controller.CreateUser)
+	http.HandleFunc(UsersEndpoint, usersHandler.Handle)
 
-		h.CreateUser(w, r)
-	})
+	//LOGIN
+	authHandler := server.NewhttpHandler()
+	authHandler.AddMethodHandlerFunc(http.MethodPost, controller.Login)
+	http.HandleFunc(LoginEndpoint, authHandler.Handle)
 
-	// Auth
-	http.HandleFunc(LoginEndpoint, func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
-			return
-		}
+	//MESSAGES
+	msgsHandler := server.NewhttpHandler()
+	msgsHandler.AddCancelMethodHandlerFunc(http.MethodPost, handler.ValidateUserHandler)
+	msgsHandler.AddMethodHandlerFunc(http.MethodPost, controller.SendMessage)
 
-		h.Login(w, r)
-	})
-
-	// Messages
-	http.HandleFunc(MessagesEndpoint, auth.ValidateUser(func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodGet:
-			h.GetMessages(w, r)
-		case http.MethodPost:
-			h.SendMessage(w, r)
-		default:
-			http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
-			return
-		}
-	}))
+	msgsHandler.AddCancelMethodHandlerFunc(http.MethodGet, handler.ValidateUserHandler)
+	msgsHandler.AddMethodHandlerFunc(http.MethodGet, controller.GetMessages)
+	http.HandleFunc(MessagesEndpoint, msgsHandler.Handle)
 
 	// Start server
 	log.Println("Server started at port " + ServerPort)
