@@ -17,6 +17,9 @@ func CreateConsoleLog (configurationName string) (interface{}, error) {
 	return NewConsoleLog(), nil
 }
 
+func (this *consoleLog) Warn(msg string) {
+	fmt.Fprint(os.Stdout, "[WARN] " + msg + "\n")
+}
 
 func (this *consoleLog) Info(msg string) {
 	fmt.Fprint(os.Stdout, "[INFO] " + msg + "\n")

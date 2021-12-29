@@ -1,5 +1,13 @@
 package models
 
 type User struct {
-	// TODO: Implement User model
+	Id       int `json:"id"`
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
+
+type UserProfile struct {
+	Id       int    `json:"id"`
+	Username string `json:"username"`
+}
+

@@ -12,3 +12,9 @@ func RespondJSON(w http.ResponseWriter, resp interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	_, _ = w.Write(retJSON)
 }
+
+// BindJSON deserialize the body
+func BindJSON(r *http.Request, obj interface{}) error {
+	decoder := json.NewDecoder(r.Body)
+	return decoder.Decode(&obj)
+}

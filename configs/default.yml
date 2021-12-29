@@ -3,7 +3,20 @@ root:
     session_name: "test"
     environment: "local"
 
+  repositories:
+    #options: memory, sql, none
+    factory_type: "memory"
+
+  token_auth:
+    #options: none, jws
+    factory_type: "none"
+
+  auth:
+    #options: none, database
+    factory_type: "none"
+
   databases:
+    #list of repositories. The childs of this elements are the session names.
     test:
       type: "none"
     local:
@@ -13,7 +26,4 @@ root:
       type: "sql"
       connection_string: ""
 
-  repositories:
-    #options: memory, sql
-    factory: "memory"
 

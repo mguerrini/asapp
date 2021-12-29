@@ -47,10 +47,10 @@ func main() {
 
 	//MESSAGES
 	msgsHandler := server.NewhttpHandler()
-	msgsHandler.AddInterceptorFunc(http.MethodPost, handler.ValidateUserHandler)
+	msgsHandler.AddInterceptorFunc(http.MethodPost, handler.ValidateTokenHandler)
 	msgsHandler.AddHandlerFunc(http.MethodPost, controller.SendMessage)
 
-	msgsHandler.AddInterceptorFunc(http.MethodGet, handler.ValidateUserHandler)
+	msgsHandler.AddInterceptorFunc(http.MethodGet, handler.ValidateTokenHandler)
 	msgsHandler.AddHandlerFunc(http.MethodGet, controller.GetMessages)
 	http.HandleFunc(MessagesEndpoint, msgsHandler.Handle)
 

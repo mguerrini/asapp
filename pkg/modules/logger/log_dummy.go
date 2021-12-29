@@ -13,6 +13,10 @@ func CreateDummyLog (configurationName string) (interface{}, error) {
 }
 
 
+
+func (this *dummyLog) Warn(msg string) {
+}
+
 func (this *dummyLog) Info(msg string) {
 }
 

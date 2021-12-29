@@ -1,26 +1,41 @@
 package server
 import (
 	"context"
+	"github.com/challenge/pkg/domain/security"
 	"github.com/challenge/pkg/modules/server"
+	"github.com/challenge/pkg/services"
 	"net/http"
 )
 
 type RequestHandler struct {
-
+	authService *services.AuthServices
 }
 
-func NewRequestHandler() *RequestHandler {
-	return &RequestHandler{}
+func NewRequestHandler(sessionName string) *RequestHandler {
+	authServ := services.NewAuthServices(sessionName)
+
+	return &RequestHandler{
+		authService: authServ,
+	}
 }
 
-func (ah *RequestHandler) ValidateUserHandler(ctx context.Context, w http.ResponseWriter, r *http.Request, next server.HttpInterceptor)  {
-	if false {
-		// TODO: validate token
+func (ah *RequestHandler) ValidateTokenHandler(ctx context.Context, w http.ResponseWriter, r *http.Request, next server.HttpInterceptor)  {
+	//get token
+	token := r.Header.Get("Authorization")
+	status := ah.authService.ValidateToken(ctx, token)
+
+	switch status {
+	case security.SecurityTokenStatus_OK:
+		next.Handle(ctx, w, r)
+		return
+	case security.SecurityTokenStatus_Expired:
+		http.Error(w, "Expired session", http.StatusUnauthorized)
+		return
+
+	case security.SecurityTokenStatus_Invalid:
 		http.Error(w, "Invalid token", http.StatusUnauthorized)
 		return
 	}
-
-	next.Handle(ctx, w, r)
 }
 
 func (ah *RequestHandler) TransactionScopeHandler(ctx context.Context, w http.ResponseWriter, r *http.Request, next server.HttpInterceptor)  {

@@ -1,25 +1,26 @@
 package logger
 
-var log Logger
+var logDefault Logger
 
 type Logger interface {
 	Info(msg string)
+	Warn(msg string)
 	Error(msg string, err error)
 	Errorf(format string, err error, args ...interface{})
 }
 
 func init () {
-	log = NewConsoleLog()
+	logDefault = NewConsoleLog()
 }
 
 func Info(msg string ){
-	log.Info(msg)
+	logDefault.Info(msg)
 }
 
 func Error(msg string, err error ){
-	log.Error(msg, err)
+	logDefault.Error(msg, err)
 }
 
 func Errorf(format string, err error, args ...interface{}){
-	log.Errorf(format, err, args)
+	logDefault.Errorf(format, err, args)
 }

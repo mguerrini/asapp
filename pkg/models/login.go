@@ -1,5 +1,8 @@
 package models
 
 type Login struct {
-	// TODO: Implement Login model
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
+
+

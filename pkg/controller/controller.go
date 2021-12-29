@@ -7,8 +7,9 @@ import (
 
 // Handler provides the interface to handle different requests
 type Handler struct {
-	msgService *services.MessageServices
+	msgService   *services.MessageServices
 	userServices *services.UserServices
+	authServices *services.AuthServices
 }
 
 func NewController() *Handler {
@@ -21,5 +22,6 @@ func NewController() *Handler {
 	return &Handler{
 		msgService:   services.NewMessageServices(sessionName),
 		userServices: services.NewUserServices(sessionName),
+		authServices: services.NewAuthServices(sessionName),
 	}
 }
