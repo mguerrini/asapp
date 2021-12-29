@@ -15,7 +15,7 @@ func (h Handler) CreateUser(ctx context.Context, w http.ResponseWriter, r *http.
 	err :=  helpers.BindJSON(r, &reqData)
 
 	if err != nil {
-		http.Error(w, "Invalid data", http.StatusBadRequest)
+		http.Error(w, "Invalid data - " + err.Error(), helpers.GetStatusCodeOr(err, http.StatusBadRequest))
 		logger.Error("Invalid data for 'CreateUser'", err)
 		return
 	}
@@ -29,7 +29,7 @@ func (h Handler) CreateUser(ctx context.Context, w http.ResponseWriter, r *http.
 	newUser, err := h.userServices.CreateUser(ctx, user)
 
 	if err != nil {
-		http.Error(w, "Error creating user", http.StatusInternalServerError)
+		http.Error(w, "Error creating user - " + err.Error(), helpers.GetStatusCodeOr(err, http.StatusBadRequest))
 		logger.Error("Error on 'CreateUser'", err)
 		return
 	}

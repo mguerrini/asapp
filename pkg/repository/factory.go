@@ -3,8 +3,6 @@ package repository
 import (
 	"github.com/challenge/pkg/modules/config"
 	"github.com/challenge/pkg/modules/logger"
-	"github.com/challenge/pkg/repository/memory"
-	"github.com/challenge/pkg/repository/sql"
 	"sync"
 )
 
@@ -34,11 +32,9 @@ func RepositoryFactory() IRepositoryFactory {
 		}
 
 		if factoryType == "sql" {
-			repositoryFactoryInstance = &sql.SqlRepositoryFactory{}
+			repositoryFactoryInstance = NewSqlRepositoryFactory()
 		} else if factoryType == "memory" {
-			repositoryFactoryInstance = &memory.MemoryRepositoryFactory{}
-		} else if factoryType == "none" {
-
+			repositoryFactoryInstance = NewMemoryRepositoryFactory()
 		} else {
 			panic("Invalid repository factory type")
 		}

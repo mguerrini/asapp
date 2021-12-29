@@ -2,8 +2,8 @@ package services
 
 import (
 	"context"
-	"errors"
 	"github.com/challenge/pkg/models"
+	"github.com/challenge/pkg/models/errors"
 	"github.com/challenge/pkg/repository"
 )
 
@@ -23,7 +23,11 @@ func NewUserServices (sessionName string) *UserServices {
 func (u *UserServices) CreateUser(ctx context.Context, user models.User) (*models.UserProfile, error)  {
 	//validate user data
 	if user.Username == "" {
-		return nil, errors.New("The username can not be empty.")
+		return nil, errors.NewBadRequestMsg("The username can not be empty.")
+	}
+
+	if user.Password == "" {
+		return nil, errors.NewBadRequestMsg("The password can not be empty.")
 	}
 
 	//validate existent user
@@ -34,7 +38,7 @@ func (u *UserServices) CreateUser(ctx context.Context, user models.User) (*model
 	}
 
 	if exist {
-		return nil, errors.New("The username already exists.")
+		return nil, errors.NewBadRequestMsg("The username already exists.")
 	}
 
 	//create
@@ -51,7 +55,7 @@ func (u *UserServices) CreateUser(ctx context.Context, user models.User) (*model
 
 func (u *UserServices) GetUserProfile(username string) (*models.UserProfile, error) {
 	if username == "" {
-		return nil, errors.New("The username can not be empty.")
+		return nil, errors.NewBadRequestMsg("The username can not be empty.")
 	}
 
 	profile, err := u.userRepository.GetProfileByUsername(username)

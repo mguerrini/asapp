@@ -2,7 +2,7 @@ package storage
 
 import (
 	"context"
-	"errors"
+	"github.com/challenge/pkg/models/errors"
 	"github.com/challenge/pkg/modules/config"
 	"sync"
 )
@@ -32,7 +32,7 @@ func DBManagerSingleton() *DBManager {
 
 func (mgr *DBManager) Open(ctx context.Context, sessionName string) (IDBConnection, error) {
 	if len(sessionName) == 0 {
-		return nil, errors.New("The database connection can not be empty")
+		return nil, errors.NewInternalServerErrorMsg("The database connection can not be empty")
 	}
 
 	mgr.sync.Lock()
@@ -55,7 +55,7 @@ func (mgr *DBManager) Open(ctx context.Context, sessionName string) (IDBConnecti
 			return nil, nil
 	}
 
-	return nil, errors.New("Invalid db type in configuration for connections '" + sessionName + "'")
+	return nil, errors.NewInternalServerErrorMsg("Invalid db type in configuration for connections '" + sessionName + "'")
 }
 
 func (mgr *DBManager) CloseAll() {

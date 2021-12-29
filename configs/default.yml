@@ -4,7 +4,7 @@ root:
     environment: "local"
 
   repositories:
-    #options: memory, sql, none
+    #options: memory, sql
     factory_type: "memory"
 
   token_auth:

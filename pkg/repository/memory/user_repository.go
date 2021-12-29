@@ -2,36 +2,35 @@ package memory
 
 import (
 	"context"
-	"errors"
 	"github.com/challenge/pkg/models"
-	"github.com/challenge/pkg/repository"
+	"github.com/challenge/pkg/models/errors"
 	"sync"
 	"sync/atomic"
 )
 
-type MemoryUserRepository struct {
+type memoryUserRepository struct {
 	sync  sync.Mutex
 	users []models.User
 	idSeq int32
 }
 
-func NewMemoryUserRepository () repository.IUserRepository {
-	return &MemoryUserRepository{
+func NewMemoryUserRepository () *memoryUserRepository {
+	return &memoryUserRepository{
 		users: make([]models.User, 0),
 	}
 }
 
-func (m MemoryUserRepository) GetPassword(ctx context.Context, userName string) (string, error) {
+func (m *memoryUserRepository) GetPassword(ctx context.Context, userName string) (string, error) {
 	for _, v := range m.users {
 		if userName == v.Username {
 			return v.Password, nil
 		}
 	}
 
-	return "", errors.New("Invalid username")
+	return "", errors.NewBadRequestMsg("Invalid username")
 }
 
-func (m MemoryUserRepository) CreateUser(ctx context.Context, user models.User) (int, error) {
+func (m *memoryUserRepository) CreateUser(ctx context.Context, user models.User) (int, error) {
 	id := atomic.AddInt32(&m.idSeq, 1)
 	user.Id = int(id)
 
@@ -43,7 +42,7 @@ func (m MemoryUserRepository) CreateUser(ctx context.Context, user models.User) 
 }
 
 
-func (m MemoryUserRepository) ExistUsername(ctx context.Context, username string) (bool, error) {
+func (m *memoryUserRepository) ExistUsername(ctx context.Context, username string) (bool, error) {
 	m.sync.Lock()
 	defer m.sync.Unlock()
 
@@ -56,7 +55,7 @@ func (m MemoryUserRepository) ExistUsername(ctx context.Context, username string
 	return false, nil
 }
 
-func (m MemoryUserRepository) GetProfileByUsername(username string) (*models.UserProfile, error) {
+func (m *memoryUserRepository) GetProfileByUsername(username string) (*models.UserProfile, error) {
 	m.sync.Lock()
 	defer m.sync.Unlock()
 

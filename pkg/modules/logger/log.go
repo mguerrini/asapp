@@ -17,6 +17,10 @@ func Info(msg string ){
 	logDefault.Info(msg)
 }
 
+func Warn(msg string ){
+	logDefault.Warn(msg)
+}
+
 func Error(msg string, err error ){
 	logDefault.Error(msg, err)
 }

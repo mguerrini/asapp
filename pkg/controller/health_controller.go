@@ -10,6 +10,5 @@ import (
 
 // Check returns the health of the service and DB
 func (h Handler) Check(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	// TODO: Check service health. Feel free to add any check you consider necessary
-	helpers.RespondJSON(w, models.Health{})
+	helpers.RespondJSON(w, models.Health{Status: "ok"})
 }

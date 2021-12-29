@@ -2,8 +2,8 @@ package config
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
+	"github.com/challenge/pkg/models/errors"
 	"github.com/olebedev/config"
 	"os"
 	folder "path"
@@ -116,7 +116,7 @@ func (this *ConfigurationManagerImpl) validateFile(path string, file string) (st
 			return fullPath1, nil
 		}
 
-		return "", errors.New("Configuration file not exists on paths: '" + currPath + ", " + exePath + "' and sub folder 'configs'" )
+		return "", errors.NewInternalServerErrorMsg("Configuration file not exists on paths: '" + currPath + ", " + exePath + "' and sub folder 'configs'" )
 	}
 
 	//uso el path
@@ -149,7 +149,7 @@ func (this *ConfigurationManagerImpl) validateFile(path string, file string) (st
 		return fullPath7, nil
 	}
 
-	return "", errors.New("Configuration file not exists on paths: '" + path + ", " + p1 + ", " + p2 + ", " + p3 + ", " + p4 + "' and sub folder 'configs'" )
+	return "", errors.NewInternalServerErrorMsg("Configuration file not exists on paths: '" + path + ", " + p1 + ", " + p2 + ", " + p3 + ", " + p4 + "' and sub folder 'configs'" )
 }
 
 func (this *ConfigurationManagerImpl) getConfigurationFilePath(path, file string) (string, bool) {

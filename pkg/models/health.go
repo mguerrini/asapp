@@ -1,5 +1,5 @@
 package models
 
 type Health struct {
-	// TODO: Implement Health model
+	Status string `json:"health"`
 }

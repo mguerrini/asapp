@@ -2,6 +2,7 @@ package server
 import (
 	"context"
 	"github.com/challenge/pkg/domain/security"
+	"github.com/challenge/pkg/modules/config"
 	"github.com/challenge/pkg/modules/server"
 	"github.com/challenge/pkg/services"
 	"net/http"
@@ -11,7 +12,13 @@ type RequestHandler struct {
 	authService *services.AuthServices
 }
 
-func NewRequestHandler(sessionName string) *RequestHandler {
+func NewRequestHandler() *RequestHandler {
+	sessionName, err := config.ConfigurationSingleton().GetString("root.startup.session_name")
+
+	if err != nil {
+		panic("There no session name configured (path: root.startup.session_name). " + err.Error())
+	}
+
 	authServ := services.NewAuthServices(sessionName)
 
 	return &RequestHandler{

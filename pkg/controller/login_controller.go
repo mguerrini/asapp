@@ -18,21 +18,27 @@ func (h Handler) Login(ctx context.Context, w http.ResponseWriter, r *http.Reque
 	err := helpers.BindJSON(r,&cred)
 
 	if err != nil {
-		http.Error(w, "Invalid login data", http.StatusBadRequest)
-		logger.Error("Invalid login data", err)
+		http.Error(w, "Login Error - Invalid login data", http.StatusBadRequest)
+		logger.Error("Login Error - Invalid login data", err)
 		return
 	}
 
 	err = h.authServices.ValidateUser(ctx, cred)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnauthorized)
+		http.Error(w, err.Error(), helpers.GetStatusCodeOr(err, http.StatusUnauthorized))
 	}
 
 	profile, err := h.userServices.GetUserProfile(cred.Username)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Login error - " + err.Error(), helpers.GetStatusCodeOr(err, http.StatusInternalServerError))
 		logger.Error("Error getting user profile for " + cred.Username, err)
+		return
+	}
+
+	if profile == nil {
+		http.Error(w, "Login error - User not exist", http.StatusNotFound)
+		logger.Warn("User not exists: " + cred.Username)
 		return
 	}
 

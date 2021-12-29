@@ -13,15 +13,15 @@ type noneTokenAuthenticationFactory struct {
 }
 
 func (n noneTokenAuthenticationFactory) Create() ITokenAuthentication {
-	panic("implement me")
+	return &noneTokenAuthentication{}
 }
 
 func (t noneTokenAuthentication) GenerateToken(ctx context.Context, user string) string {
-	panic("implement me")
+	return "0000000000-0000000000-0000000000-0000000000"
 }
 
 func (t noneTokenAuthentication) ValidateToken(ctx context.Context, token string) TokenStatus {
-	panic("implement me")
+	return SecurityTokenStatus_OK
 }
 
 

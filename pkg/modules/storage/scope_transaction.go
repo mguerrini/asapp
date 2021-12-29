@@ -2,7 +2,7 @@ package storage
 
 import (
 	"context"
-	"errors"
+	"github.com/challenge/pkg/models/errors"
 	"sync"
 )
 
@@ -41,7 +41,7 @@ func (ts *transactionScope) IsFinished() bool {
 
 func (ts *transactionScope) Commit(ctx context.Context) error {
 	if ts.isFinished {
-		return errors.New("The transaction is finished, can not enlist.")
+		return errors.NewInternalServerErrorMsg("The transaction is finished, can not enlist.")
 	}
 
 	ts.sync.Lock()
@@ -56,7 +56,7 @@ func (ts *transactionScope) Commit(ctx context.Context) error {
 
 func (ts *transactionScope) Rollback(ctx context.Context) error {
 	if ts.isFinished {
-		return errors.New("The transaction is finished, can not enlist.")
+		return errors.NewInternalServerErrorMsg("The transaction is finished, can not enlist.")
 	}
 
 	ts.sync.Lock()
@@ -71,7 +71,7 @@ func (ts *transactionScope) Rollback(ctx context.Context) error {
 
 func (ts *transactionScope) Enlist(ctx context.Context, tx ITransactional) error {
 	if ts.isFinished {
-		return errors.New("The transaction is finished, can not enlist.")
+		return errors.NewInternalServerErrorMsg("The transaction is finished, can not enlist.")
 	}
 
 	ts.sync.Lock()
