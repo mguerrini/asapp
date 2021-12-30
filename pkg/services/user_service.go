@@ -53,12 +53,26 @@ func (u *UserServices) CreateUser(ctx context.Context, user models.User) (*model
 	}, nil
 }
 
-func (u *UserServices) GetUserProfile(username string) (*models.UserProfile, error) {
+func (u *UserServices) GetUserProfileByUsername(ctx context.Context, username string) (*models.UserProfile, error) {
 	if username == "" {
 		return nil, errors.NewBadRequestMsg("The username can not be empty.")
 	}
 
-	profile, err := u.userRepository.GetProfileByUsername(username)
+	profile, err := u.userRepository.GetProfileByUsername(ctx, username)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return profile, nil
+}
+
+func (u *UserServices) GetUserProfileById(ctx context.Context, userId int) (*models.UserProfile, error) {
+	if userId <= 0 {
+		return nil, errors.NewBadRequestMsg("Invalid user id.")
+	}
+
+	profile, err := u.userRepository.GetProfileById(ctx, userId)
 
 	if err != nil {
 		return nil, err

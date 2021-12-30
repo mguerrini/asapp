@@ -12,7 +12,7 @@ import (
 
 
 // Login authenticates a user and returns a token
-func (h Handler) Login(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func (h *Handler) Login(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	// TODO: User must login and a token must be generated
 	cred := models.Login{}
 	err := helpers.BindJSON(r,&cred)
@@ -28,7 +28,7 @@ func (h Handler) Login(ctx context.Context, w http.ResponseWriter, r *http.Reque
 		http.Error(w, err.Error(), helpers.GetStatusCodeOr(err, http.StatusUnauthorized))
 	}
 
-	profile, err := h.userServices.GetUserProfile(cred.Username)
+	profile, err := h.userServices.GetUserProfileByUsername(ctx, cred.Username)
 
 	if err != nil {
 		http.Error(w, "Login error - " + err.Error(), helpers.GetStatusCodeOr(err, http.StatusInternalServerError))

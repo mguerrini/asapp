@@ -10,7 +10,7 @@ import (
 )
 
 // CreateUser creates a new user
-func (h Handler) CreateUser(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func (h *Handler) CreateUser(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	reqData := CreateUserRequest{}
 	err :=  helpers.BindJSON(r, &reqData)
 

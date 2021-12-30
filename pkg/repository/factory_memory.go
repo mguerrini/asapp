@@ -33,6 +33,14 @@ func (m memoryRepositoryFactory) CreateUserRepository(sessionName string) IUserR
 }
 
 func (m memoryRepositoryFactory) CreateMessageRepository(sessionName string) IMessageRepository {
-	panic("implement me")
-}
+	m.sync.Lock()
+	defer m.sync.Unlock()
+
+	if repo, ok := m.msgsRepos[sessionName]; ok {
+		return repo
+	}
+	output := memory.NewMemoryMessageRepository()
+	m.msgsRepos[sessionName] = output
+
+	return output}
 

@@ -18,3 +18,17 @@ func BindJSON(r *http.Request, obj interface{}) error {
 	decoder := json.NewDecoder(r.Body)
 	return decoder.Decode(&obj)
 }
+
+// Could be something more intelligent with reflection
+func Copy (source interface{}, destiny interface{} ) {
+	if IsNil(source) || IsNil(destiny) {
+		return
+	}
+
+	sourceJson, _ := json.Marshal(source)
+	str := string(sourceJson)
+	if len(str) == 0{
+
+	}
+	json.Unmarshal(sourceJson, destiny)
+}
