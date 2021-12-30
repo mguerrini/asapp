@@ -42,9 +42,14 @@ func (h *Handler) Login(ctx context.Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	token := h.authServices.GenerateToken(ctx, cred.Username)
+	token, err := h.authServices.GenerateToken(ctx, cred.Username)
 
-	//Id = 0. I dont know if I must response with the user id or just 0
+	if err != nil {
+		http.Error(w, "Error generating Token - " + err.Error(), http.StatusInternalServerError)
+		logger.Error("Error generating Token", err)
+		return
+	}
+
 	resp := LoginResponse{
 		Id:    profile.Id,
 		Token: token,

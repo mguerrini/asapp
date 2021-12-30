@@ -8,10 +8,13 @@ root:
     factory_type: "memory"
 
   token_auth:
-    #options: none, jws
-    factory_type: "none"
+    #options: none, jwt
+    factory_type: "jwt"
+    #minutos
+    expiration: 5
+    jwt_key: "1qazxsw23edcvfr45tgbnhy6"
 
-  auth:
+  authentication:
     #options: none, database
     factory_type: "none"
 

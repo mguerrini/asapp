@@ -24,7 +24,7 @@ type ITokenAuthenticationFactory interface {
 }
 
 type ITokenAuthentication interface {
-	GenerateToken(ctx context.Context, user string) string
+	GenerateToken(ctx context.Context, user string) (string, error)
 	ValidateToken(ctx context.Context, token string) TokenStatus
 }
 
@@ -45,8 +45,8 @@ func TokenAuthenticationFactory() ITokenAuthenticationFactory {
 			factoryType = "jws"
 		}
 
-		if factoryType == "jws" {
-			tokenAuthenticationFactoryInstance = &jwsTokenAuthenticationFactory{}
+		if factoryType == "jwt" {
+			tokenAuthenticationFactoryInstance = &jwtTokenAuthenticationFactory{}
 		} else if factoryType == "none" {
 			tokenAuthenticationFactoryInstance = &noneTokenAuthenticationFactory{}
 		} else {

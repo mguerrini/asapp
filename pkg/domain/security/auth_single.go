@@ -27,15 +27,15 @@ func AuthenticationFactory() IAuthenticationFactory {
 			return
 		}
 
-		factoryType, err := config.ConfigurationSingleton().GetString("root.token_auth.factory_type")
+		factoryType, err := config.ConfigurationSingleton().GetString("root.authentication.factory_type")
 
 		if err != nil {
-			logger.Error("Error getting token auth factory type. Use jws factory.", err)
+			logger.Error("Error getting authentication factory type. Use database factory.", err)
 		}
 
 		if factoryType == "" {
-			logger.Info("Token auth factory type is not defined. Use jws factory.")
-			factoryType = "jws"
+			logger.Info("Authentication factory type is not defined. Use database factory.")
+			factoryType = "database"
 		}
 
 		if factoryType == "database" {
@@ -43,7 +43,7 @@ func AuthenticationFactory() IAuthenticationFactory {
 		} else if factoryType == "none" {
 			authenticationFactoryInstance = &noneAuthenticationFactory{}
 		} else {
-			panic("Invalid token authentication factory type")
+			panic("Invalid authentication factory type")
 		}
 	})
 

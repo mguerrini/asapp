@@ -36,7 +36,7 @@ func (ah *RequestHandler) ValidateTokenHandler(ctx context.Context, w http.Respo
 		next.Handle(ctx, w, r)
 		return
 	case security.SecurityTokenStatus_Expired:
-		http.Error(w, "Expired session", http.StatusUnauthorized)
+		http.Error(w, "Session expired", http.StatusUnauthorized)
 		return
 
 	case security.SecurityTokenStatus_Invalid:

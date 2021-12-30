@@ -29,7 +29,7 @@ func (s *AuthServices) ValidateUser(ctx context.Context, cred models.Login) erro
 	return err
 }
 
-func (s *AuthServices) GenerateToken(ctx context.Context, userName string) (token string) {
+func (s *AuthServices) GenerateToken(ctx context.Context, userName string) (string, error) {
 	return s.authorization.GenerateToken(ctx, userName)
 }
 
