@@ -26,6 +26,10 @@ func (cnn *sqlTxDb) Id ()string {
 	return cnn.id
 }
 
+func (cnn *sqlTxDb) Ping () error {
+	return nil
+}
+
 func (cnn *sqlTxDb) Query (ctx context.Context, query string, params ...interface{}) (*sql.Rows, error) {
 	return cnn.tx.QueryContext(ctx, query, params...)
 }

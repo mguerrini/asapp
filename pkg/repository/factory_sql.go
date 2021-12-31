@@ -30,3 +30,12 @@ func (s sqlRepositoryFactory) CreateMessageRepository(sessionName string) IMessa
 	return rep
 }
 
+func (s sqlRepositoryFactory) CreateHealthRepository(sessionName string)  IHealthRepository {
+	rep, err := sql.NewHealthRepository(sessionName)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return rep
+}

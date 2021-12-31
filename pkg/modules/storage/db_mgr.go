@@ -89,7 +89,11 @@ func (mgr *DBManager) Dispose() {
 	defer mgr.sync.Unlock()
 
 	for _, v := range mgr.connections {
-		v.(Closable).Close()
+		c, ok := v.(Closable)
+
+		if ok {
+			c.Close()
+		}
 	}
 
 	mgr.connections = make(map[string]IDBConnection, 0)

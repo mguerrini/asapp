@@ -9,6 +9,7 @@ type memoryRepositoryFactory struct {
 	sync sync.Mutex
 	userRepos map[string] IUserRepository
 	msgsRepos map[string] IMessageRepository
+	healthRepos map[string] IHealthRepository
 }
 
 func NewMemoryRepositoryFactory() IRepositoryFactory {
@@ -16,6 +17,7 @@ func NewMemoryRepositoryFactory() IRepositoryFactory {
 		sync:      sync.Mutex{},
 		userRepos: make(map[string] IUserRepository, 0),
 		msgsRepos: make(map[string] IMessageRepository, 0),
+		healthRepos: make(map[string] IHealthRepository, 0),
 	}
 }
 
@@ -42,5 +44,19 @@ func (m memoryRepositoryFactory) CreateMessageRepository(sessionName string) IMe
 	output := memory.NewMemoryMessageRepository()
 	m.msgsRepos[sessionName] = output
 
-	return output}
+	return output
+}
+
+func (m memoryRepositoryFactory) CreateHealthRepository(sessionName string)  IHealthRepository {
+	m.sync.Lock()
+	defer m.sync.Unlock()
+
+	if repo, ok := m.healthRepos[sessionName]; ok {
+		return repo
+	}
+	output := memory.NewMemoryHealthRepositoryRepository()
+	m.healthRepos[sessionName] = output
+
+	return output
+}
 

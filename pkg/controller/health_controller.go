@@ -10,5 +10,11 @@ import (
 
 // Check returns the health of the service and DB
 func (h *Handler) Check(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	helpers.RespondJSON(w, models.Health{Status: "ok"})
+	err := h.healthRepository.Ping()
+
+	if err == nil {
+		helpers.RespondJSON(w, models.Health{Status: "ok"})
+	} else {
+		helpers.RespondJSON(w, models.Health{Status: "fail"})
+	}
 }

@@ -25,6 +25,7 @@ func NewMemoryMessageRepository () *memoryMessageRepository {
 	}
 }
 
+
 func (m *memoryMessageRepository) CreateMessage(ctx context.Context, msg *models.Message) error {
 	msgId := atomic.AddInt32(&m.idSeq, 1)
 	cntId := atomic.AddInt32(&m.idSeq, 1)

@@ -12,6 +12,7 @@ var repositoryFactoryInstance IRepositoryFactory
 type IRepositoryFactory interface {
 	CreateUserRepository(sessionName string) IUserRepository
 	CreateMessageRepository(sessionName string)  IMessageRepository
+	CreateHealthRepository(sessionName string)  IHealthRepository
 }
 
 func RepositoryFactory() IRepositoryFactory {

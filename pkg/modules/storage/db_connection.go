@@ -6,6 +6,7 @@ import (
 )
 
 type IDBConnection interface {
+	Ping() error
 	Query(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error)
 	Exec(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
 }
@@ -28,6 +29,10 @@ func (cnn *dbConnection) Begin(ctx context.Context, opt *sql.TxOptions) (IDBTran
 		tx: tx,
 		dbConnection: cnn,
 	}, nil
+}
+
+func (cnn *dbConnection) Ping () error {
+	return cnn.db.Ping()
 }
 
 func (cnn *dbConnection) Query (ctx context.Context, query string, params ...interface{})  (*sql.Rows, error) {
@@ -58,6 +63,10 @@ func (cnn *dbConnection) Exec (ctx context.Context, query string, params ...inte
 
 	//do the query
 	return currTx.Exec(ctx, query, params...)
+}
+
+func (cnn *dbConnection) Close ()  {
+	cnn.db.Close()
 }
 
 func (cnn *dbConnection) getOpenedTransaction (ctx context.Context) (IDBTransaction, error) {

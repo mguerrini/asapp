@@ -25,6 +25,7 @@ func NewMemoryUserRepository () *memoryUserRepository {
 	}
 }
 
+
 func (m *memoryUserRepository) GetPassword(ctx context.Context, userName string) (string, error) {
 	m.sync.Lock()
 	defer m.sync.Unlock()
