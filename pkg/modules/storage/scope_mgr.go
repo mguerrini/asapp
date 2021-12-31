@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"database/sql"
 	"sync"
 )
 
@@ -34,58 +35,36 @@ func TransactionalScopeManagerSingleton() *TransactionalScopeManager {
 
 
 
-func (mgr *TransactionalScopeManager) Begin(ctx *context.Context)  ITransactionScope {
-	tx := NewTransactionScope()
+func (mgr *TransactionalScopeManager) Begin(ctx context.Context, opt *sql.TxOptions) (context.Context, ITransactionScope) {
+	tx := NewTransactionScope(mgr, opt)
 
 	mgr.sync.Lock()
 	defer mgr.sync.Unlock()
 
-	scopeContainer := mgr.getScopes(ctx)
+	newCtx, scopeContainer := mgr.getScopes(ctx)
 	scopeContainer.scopes = append(scopeContainer.scopes, tx)
 
-	return tx
+	return newCtx, tx
 }
 
-//Commit current tx scope
-func (mgr *TransactionalScopeManager) commit(ctx context.Context)   {
+// Finish the last TxScope TODO, search and remove
+func (mgr *TransactionalScopeManager) Finished(ctx context.Context, scope ITransactionScope)   {
 	mgr.sync.Lock()
 	defer mgr.sync.Unlock()
 
-	scopeContainer := mgr.getScopes(&ctx)
+	_, scopeContainer := mgr.getScopes(ctx)
 
 	if scopeContainer == nil || len(scopeContainer.scopes) == 0 {
 		return
 	}
 
 	//get last scope
-	scope := scopeContainer.scopes[len(scopeContainer.scopes)-1]
 	scopeContainer.scopes = scopeContainer.scopes[0:len(scopeContainer.scopes)-1]
-
-	tx := scope.(*transactionScope)
-	tx.Commit(ctx)
 }
 
-//Rollback current tx scope
-func (mgr *TransactionalScopeManager) rollback(ctx context.Context)   {
-	mgr.sync.Lock()
-	defer mgr.sync.Unlock()
-
-	scopeContainer := mgr.getScopes(&ctx)
-
-	if scopeContainer == nil || len(scopeContainer.scopes) == 0 {
-		return
-	}
-
-	//get last scope
-	scope := scopeContainer.scopes[len(scopeContainer.scopes)-1]
-	scopeContainer.scopes = scopeContainer.scopes[0:len(scopeContainer.scopes)-1]
-
-	tx := scope.(*transactionScope)
-	tx.Rollback(ctx)
-}
 
 func (mgr *TransactionalScopeManager) GetCurrentScope(ctx context.Context) ITransactionScope {
-	scopes:= mgr.getScopes(&ctx)
+	_, scopes := mgr.getScopes(ctx)
 
 	if scopes == nil || len(scopes.scopes) == 0 {
 		return nil
@@ -94,18 +73,18 @@ func (mgr *TransactionalScopeManager) GetCurrentScope(ctx context.Context) ITran
 	}
 }
 
-func (mgr *TransactionalScopeManager) getScopes(ctx *context.Context) *scopesEnvelop {
+func (mgr *TransactionalScopeManager) getScopes(ctx context.Context) (context.Context, *scopesEnvelop) {
 	if ctx == nil {
-		return nil
+		return nil, nil
 	}
-	scopes := (*ctx).Value(CurrentTransactionScopeKey)
+	scopes := ctx.Value(CurrentTransactionScopeKey)
 
 	if scopes == nil {
 		scopes = &scopesEnvelop{scopes: make([]ITransactionScope, 0)}
-		newCtx := context.WithValue(*ctx, CurrentTransactionScopeKey, scopes)
-		ctx = &newCtx
+		newCtx := context.WithValue(ctx, CurrentTransactionScopeKey, scopes)
+		ctx = newCtx
 	}
 
-	scopes = (*ctx).Value(CurrentTransactionScopeKey)
-	return scopes.(*scopesEnvelop)
+	scopes = ctx.Value(CurrentTransactionScopeKey)
+	return ctx, scopes.(*scopesEnvelop)
 }

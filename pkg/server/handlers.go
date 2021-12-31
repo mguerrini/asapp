@@ -4,9 +4,25 @@ import (
 	"github.com/challenge/pkg/domain/security"
 	"github.com/challenge/pkg/modules/config"
 	"github.com/challenge/pkg/modules/server"
+	"github.com/challenge/pkg/modules/storage"
 	"github.com/challenge/pkg/services"
 	"net/http"
 )
+
+type statusCaptureResponseWriter struct {
+	http.ResponseWriter
+	statusCode int
+}
+
+func NewStatusCaptureResponseWriter(w http.ResponseWriter) *statusCaptureResponseWriter {
+	return &statusCaptureResponseWriter{w, http.StatusOK}
+}
+
+func (lrw *statusCaptureResponseWriter) WriteHeader(code int) {
+	lrw.statusCode = code
+	lrw.ResponseWriter.WriteHeader(code)
+}
+
 
 type RequestHandler struct {
 	authService *services.AuthServices
@@ -45,8 +61,22 @@ func (ah *RequestHandler) ValidateTokenHandler(ctx context.Context, w http.Respo
 	}
 }
 
+
+
 func (ah *RequestHandler) TransactionScopeHandler(ctx context.Context, w http.ResponseWriter, r *http.Request, next server.HttpInterceptor)  {
-	next.Handle(ctx, w, r)
+	newCtx, scope := storage.TransactionalScopeManagerSingleton().Begin(ctx, nil)
+
+	newW := NewStatusCaptureResponseWriter(w)
+
+	defer func() {
+		if newW.statusCode == http.StatusOK {
+			scope.Commit(newCtx)
+		} else {
+			scope.Rollback(newCtx)
+		}
+	}()
+
+	next.Handle(newCtx, newW, r)
 }
 
 func (ah *RequestHandler) ErrorHandler(ctx context.Context, w http.ResponseWriter, r *http.Request, next server.HttpInterceptor)  {

@@ -30,13 +30,14 @@ func main() {
 	// HEALTH
 	checkEndpointHandler := server.NewhttpHandler()
 	checkEndpointHandler.AddInterceptorFunc(http.MethodPost, handler.ErrorHandler)
-	checkEndpointHandler.AddInterceptorFunc(http.MethodPost, handler.TransactionScopeHandler)
 	checkEndpointHandler.AddHandlerFunc(http.MethodPost, controller.Check)
 
 	http.HandleFunc(CheckEndpoint, checkEndpointHandler.Handle)
 
 	// USERS
 	usersHandler := server.NewhttpHandler()
+	//Commit only with response code = 200, with other status code: Rollback
+	usersHandler.AddInterceptorFunc(http.MethodPost, handler.TransactionScopeHandler)
 	usersHandler.AddHandlerFunc(http.MethodPost, controller.CreateUser)
 	http.HandleFunc(UsersEndpoint, usersHandler.Handle)
 
@@ -48,6 +49,8 @@ func main() {
 	//MESSAGES
 	msgsHandler := server.NewhttpHandler()
 	msgsHandler.AddInterceptorFunc(http.MethodPost, handler.ValidateTokenHandler)
+	//Commit only with response code = 200, with other status code: Rollback
+	msgsHandler.AddInterceptorFunc(http.MethodPost, handler.TransactionScopeHandler)
 	msgsHandler.AddHandlerFunc(http.MethodPost, controller.SendMessage)
 
 	msgsHandler.AddInterceptorFunc(http.MethodGet, handler.ValidateTokenHandler)

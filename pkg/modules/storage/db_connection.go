@@ -42,7 +42,7 @@ func (cnn *dbConnection) Query (ctx context.Context, query string, params ...int
 	}
 
 	//do the query
-	return currTx.Query(ctx, query, params)
+	return currTx.Query(ctx, query, params...)
 }
 
 func (cnn *dbConnection) Exec (ctx context.Context, query string, params ...interface{}) (sql.Result, error) {
@@ -57,7 +57,7 @@ func (cnn *dbConnection) Exec (ctx context.Context, query string, params ...inte
 	}
 
 	//do the query
-	return currTx.Exec(ctx, query, params)
+	return currTx.Exec(ctx, query, params...)
 }
 
 func (cnn *dbConnection) getOpenedTransaction (ctx context.Context) (IDBTransaction, error) {

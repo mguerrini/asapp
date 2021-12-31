@@ -27,11 +27,11 @@ func (cnn *sqlTxDb) Id ()string {
 }
 
 func (cnn *sqlTxDb) Query (ctx context.Context, query string, params ...interface{}) (*sql.Rows, error) {
-	return cnn.tx.QueryContext(ctx, query, params )
+	return cnn.tx.QueryContext(ctx, query, params...)
 }
 
 func (cnn *sqlTxDb) Exec (ctx context.Context, query string, params ...interface{}) (sql.Result, error) {
-	return cnn.tx.ExecContext(ctx, query, params )
+	return cnn.tx.ExecContext(ctx, query, params...)
 }
 
 func (cnn *sqlTxDb) Commit(ctx context.Context) error {
@@ -46,7 +46,7 @@ func (cnn *sqlTxDb) Commit(ctx context.Context) error {
 }
 
 func (cnn *sqlTxDb) Rollback (ctx context.Context) error {
-	err := cnn.tx.Commit()
+	err := cnn.tx.Rollback()
 
 	if err != nil {
 		return err

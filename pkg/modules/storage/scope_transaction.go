@@ -10,9 +10,13 @@ import (
 // Interfaces
 type ITransactionScope interface {
 	IsFinished() bool
+	GetResource(id string) ITransaction
+
 	Enlist(ctx context.Context, transactional ITransactional) error
 	EnlistFunc (ctx context.Context, beginFunc func(ctx context.Context, opt *sql.TxOptions) (ITransaction, error)) error
-	GetResource(id string) ITransaction
+
+	Commit(ctx context.Context) error
+	Rollback(ctx context.Context) error
 }
 
 type ITransactional interface {
@@ -21,16 +25,19 @@ type ITransactional interface {
 
 // Implementation
 type transactionScope struct {
-	sync sync.Mutex
+	sync       sync.Mutex
+	txOptions  *sql.TxOptions
 	isFinished bool
 	resources  []ITransaction
+	manager    *TransactionalScopeManager
 }
 
-
-func NewTransactionScope() ITransactionScope {
+func NewTransactionScope(mgr *TransactionalScopeManager, opt *sql.TxOptions) ITransactionScope {
 	output := &transactionScope{
+		txOptions:  opt,
 		isFinished: false,
 		resources:  make([]ITransaction, 0),
+		manager:    mgr,
 	}
 
 	return output
@@ -55,34 +62,42 @@ func (ts *transactionScope) GetResource(id string) ITransaction {
 }
 
 func (ts *transactionScope) Commit(ctx context.Context) error {
+	ts.sync.Lock()
+	defer ts.sync.Unlock()
+
 	if ts.isFinished {
 		return errors.NewInternalServerErrorMsg("The transaction is finished, can not enlist.")
 	}
 
-	ts.sync.Lock()
-	defer ts.sync.Unlock()
+	ts.isFinished = true
 
 	for _, tx := range ts.resources {
 		tx.Commit(ctx)
 	}
 
+	ts.manager.Finished(ctx, ts)
+
 	return nil
 }
 
 func (ts *transactionScope) Rollback(ctx context.Context) error {
+	ts.sync.Lock()
+	defer ts.sync.Unlock()
+
 	if ts.isFinished {
 		return errors.NewInternalServerErrorMsg("The transaction is finished, can not enlist.")
 	}
 
-	ts.sync.Lock()
-	defer ts.sync.Unlock()
+	ts.isFinished = true
 
 	for _, tx := range ts.resources {
 		tx.Rollback(ctx)
 	}
 
+	ts.manager.Finished(ctx, ts)
 	return nil
 }
+
 
 func (ts *transactionScope) EnlistFunc (ctx context.Context, beginFunc func(ctx context.Context, opt *sql.TxOptions) (ITransaction, error)) error {
 	if ts.isFinished {
