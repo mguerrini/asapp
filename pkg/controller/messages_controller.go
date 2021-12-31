@@ -60,7 +60,7 @@ func (h *Handler) createMessage(reqData SendMessageRequest) (*models.Message, er
 		helpers.Copy(reqData.Content, img)
 		msg.Content = img
 	case string(models.ContentType_Text):
-		txt := &models.Text{}
+		txt := &models.TextData{}
 		helpers.Copy(reqData.Content, txt)
 		msg.Content = txt
 	default:

@@ -1,4 +1,5 @@
 package server
+
 import (
 	"context"
 	"github.com/challenge/pkg/domain/security"
@@ -69,10 +70,15 @@ func (ah *RequestHandler) TransactionScopeHandler(ctx context.Context, w http.Re
 	newW := NewStatusCaptureResponseWriter(w)
 
 	defer func() {
-		if newW.statusCode == http.StatusOK {
-			scope.Commit(newCtx)
-		} else {
+		if r := recover(); r != nil {
 			scope.Rollback(newCtx)
+			panic(r)
+		} else {
+			if newW.statusCode == http.StatusOK {
+				scope.Commit(newCtx)
+			} else {
+				scope.Rollback(newCtx)
+			}
 		}
 	}()
 

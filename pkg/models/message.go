@@ -13,7 +13,6 @@ const (
 )
 
 type IMessageContent interface {
-	IIdentificable
 	Type() ContentType
 }
 
@@ -28,9 +27,9 @@ type Message struct {
 //VIDEO
 
 type VideoData struct {
-	identificable
-	Url    string          `json:"url"`
-	Source VideoSourceType `json:"source"`
+	DataType ContentType     `json:"type"`
+	Url      string          `json:"url"`
+	Source   VideoSourceType `json:"source"`
 }
 
 func (v *VideoData) Type() ContentType {
@@ -40,10 +39,10 @@ func (v *VideoData) Type() ContentType {
 // IMAGE
 
 type ImageData struct {
-	identificable
-	Url    string `json:"url"`
-	Height int    `json:"height"`
-	Width  int    `json:"width"`
+	DataType ContentType `json:"type"`
+	Url      string      `json:"url"`
+	Height   int         `json:"height"`
+	Width    int         `json:"width"`
 }
 
 func (i *ImageData) Type() ContentType {
@@ -52,11 +51,11 @@ func (i *ImageData) Type() ContentType {
 
 // TEXT
 
-type Text struct {
-	identificable
-	Text string `json:"text"`
+type TextData struct {
+	DataType ContentType `json:"type"`
+	Text     string      `json:"text"`
 }
 
-func (i *Text) Type() ContentType {
+func (i *TextData) Type() ContentType {
 	return ContentType_Text
 }

@@ -34,7 +34,7 @@ func CreateSingleton(path, file string) {
 }
 
 func JoinSingleton(path, file string)  {
-	impl, ok := singleton.(*ConfigurationManagerImpl)
+	impl, ok := ConfigurationSingleton().(*ConfigurationManagerImpl)
 
 	if ok {
 		impl.Join(path, file)

@@ -7,6 +7,9 @@ import (
 	"github.com/olebedev/config"
 	"os"
 	folder "path"
+	"path/filepath"
+	"runtime"
+	"strings"
 )
 
 type ConfigurationManager interface {
@@ -105,6 +108,12 @@ func (this *ConfigurationManagerImpl) validateFile(path string, file string) (st
 	currPath := this.GetCurrentPath()
 	exePath, _ := os.Executable()
 
+	//project path
+	_, b, _, _ := runtime.Caller(0)
+	basepath := filepath.Dir(b)
+	prjPath := folder.Join(basepath, "../../../")
+
+
 	if len(path) == 0 {
 		fullPath2, exist2 := this.getConfigurationFilePath(exePath, file)
 		if exist2 {
@@ -116,40 +125,35 @@ func (this *ConfigurationManagerImpl) validateFile(path string, file string) (st
 			return fullPath1, nil
 		}
 
+		fullPath0, exist0 := this.getConfigurationFilePath(prjPath, file)
+		if exist0 {
+			return fullPath0, nil
+		}
+
 		return "", errors.NewInternalServerErrorMsg("Configuration file not exists on paths: '" + currPath + ", " + exePath + "' and sub folder 'configs'" )
 	}
 
 	//uso el path
 	fullPath3, exist3 := this.getConfigurationFilePath(path, file)
-
 	if exist3 {
 		return fullPath3, nil
 	}
 
+	paths := []string {folder.Join(exePath, path),
+		folder.Join(currPath, path),
+		folder.Join(prjPath, path),
+		folder.Join(path, exePath),
+		folder.Join(path, currPath),
+		folder.Join(prjPath, currPath)}
 
-	p1 := folder.Join(exePath, path)
-	p2 := folder.Join(currPath, path)
-	p3 := folder.Join(path, exePath)
-	p4 := folder.Join(path, currPath)
-
-	fullPath4, exist4 := this.getConfigurationFilePath(p1, file)
-	if exist4 {
-		return fullPath4, nil
-	}
-	fullPath5, exist5 := this.getConfigurationFilePath(p2, file)
-	if exist5 {
-		return fullPath5, nil
-	}
-	fullPath6, exist6 := this.getConfigurationFilePath(p3, file)
-	if exist6 {
-		return fullPath6, nil
-	}
-	fullPath7, exist7 := this.getConfigurationFilePath(p4, file)
-	if exist7 {
-		return fullPath7, nil
+	for _, p := range paths {
+		fullPath, exist := this.getConfigurationFilePath(p, file)
+		if exist {
+			return fullPath, nil
+		}
 	}
 
-	return "", errors.NewInternalServerErrorMsg("Configuration file not exists on paths: '" + path + ", " + p1 + ", " + p2 + ", " + p3 + ", " + p4 + "' and sub folder 'configs'" )
+	return "", errors.NewInternalServerErrorMsg("Configuration file not exists on paths: '" + path + ", " + strings.Join(paths, ", ") + "' and sub folder 'configs'" )
 }
 
 func (this *ConfigurationManagerImpl) getConfigurationFilePath(path, file string) (string, bool) {

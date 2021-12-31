@@ -93,24 +93,17 @@ func (s *sqlMessageRepository) createVideoContent(ctx context.Context, msg *mode
 		@Source
 	);`
 
-	res, err := s.dbCnn.Exec(ctx, query, msg.Id, vid.Url, vid.Source)
+	_, err := s.dbCnn.Exec(ctx, query, msg.Id, vid.Url, vid.Source)
 
 	if err != nil {
 		return err
 	}
 
-	id, err := res.LastInsertId()
-
-	if err != nil {
-		return err
-	}
-
-	vid.Id = int (id)
 	return nil
 }
 
 func (s *sqlMessageRepository) createTextContent(ctx context.Context, msg *models.Message) error {
-	txt, ok := msg.Content.(*models.Text)
+	txt, ok := msg.Content.(*models.TextData)
 
 	if !ok {
 		return nil
@@ -126,19 +119,12 @@ func (s *sqlMessageRepository) createTextContent(ctx context.Context, msg *model
 		@Text
 	);`
 
-	res, err := s.dbCnn.Exec(ctx, query, msg.Id, txt.Text)
+	_, err := s.dbCnn.Exec(ctx, query, msg.Id, txt.Text)
 
 	if err != nil {
 		return err
 	}
 
-	id, err := res.LastInsertId()
-
-	if err != nil {
-		return err
-	}
-
-	txt.Id = int (id)
 	return nil
 }
 
@@ -163,19 +149,12 @@ func (s *sqlMessageRepository) createImageContent(ctx context.Context, msg *mode
 		@Width
 	);`
 
-	res, err := s.dbCnn.Exec(ctx, query, msg.Id, img.Url, img.Height, img.Width)
+	_, err := s.dbCnn.Exec(ctx, query, msg.Id, img.Url, img.Height, img.Width)
 
 	if err != nil {
 		return err
 	}
 
-	id, err := res.LastInsertId()
-
-	if err != nil {
-		return err
-	}
-
-	img.Id = int (id)
 	return nil
 }
 
@@ -186,16 +165,13 @@ func (s *sqlMessageRepository) SearchMessages(ctx context.Context, recipientId i
 	query :=
 		`SELECT m.*,
 		CASE
-			WHEN txt.Id IS NOT NULL THEN 'text'
-			WHEN vd.Id IS NOT NULL THEN 'video'
-			WHEN img.Id IS NOT NULL THEN 'image'
+			WHEN txt.MessageId IS NOT NULL THEN 'text'
+			WHEN vd.MessageId IS NOT NULL THEN 'video'
+			WHEN img.MessageId IS NOT NULL THEN 'image'
 		END as ContentType,
-		txt.Id AS text_Id,
 		txt.Text AS text_Text,
-		vd.Id AS video_Id,
 		vd.Url AS video_Url,
 		vd.Source AS video_Source,
-		img.Id AS image_Id,
 		img.Url AS image_Url,
 		img.Height AS image_Height,
 		img.Width AS image_Width
@@ -247,15 +223,15 @@ func (s *sqlMessageRepository) buildMessage(row map[string]interface{}) (*models
 	contentType := helpers.GetString("ContentType", row)
 
 	if contentType == "text" {
-		txt := &models.Text{Text: helpers.GetString("text_Text", row)}
-		txt.Id = helpers.GetInt("text_Id", row)
+		txt := &models.TextData{Text: helpers.GetString("text_Text", row)}
+		txt.DataType = "text"
 		msg.Content = txt
 	} else if contentType == "video" {
 		vid := &models.VideoData{
 			Url:    helpers.GetString("video_Url", row),
 			Source: models.VideoSourceType(helpers.GetString("video_Source", row)),
 		}
-		vid.Id = helpers.GetInt("video_Id", row)
+		vid.DataType = "video"
 		msg.Content = vid
 	} else if contentType == "image" {
 		img := &models.ImageData{
@@ -263,7 +239,7 @@ func (s *sqlMessageRepository) buildMessage(row map[string]interface{}) (*models
 			Height: helpers.GetInt("image_Height", row),
 			Width:  helpers.GetInt("image_Width", row),
 		}
-		img.Id = helpers.GetInt("image_Id", row)
+		img.DataType ="image"
 		msg.Content = img
 	} else {
 		return nil, errors.NewInternalServerErrorMsg("Invalid content type")

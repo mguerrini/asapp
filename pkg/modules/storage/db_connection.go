@@ -80,7 +80,7 @@ func (cnn *dbConnection) getOpenedTransaction (ctx context.Context) (IDBTransact
 	tx := scope.GetResource(cnn.sessionName)
 	if tx == nil {
 		//enlisto a la tx
-		scope.EnlistFunc(ctx, func(ctx context.Context, opt *sql.TxOptions) (ITransaction, error) {
+		err := scope.EnlistFunc(ctx, func(ctx context.Context, opt *sql.TxOptions) (ITransaction, error) {
 			dbTx, err := cnn.Begin(ctx, opt)
 
 			if err != nil {
@@ -89,6 +89,10 @@ func (cnn *dbConnection) getOpenedTransaction (ctx context.Context) (IDBTransact
 
 			return dbTx.(ITransaction), nil
 		})
+
+		if err != nil {
+			return nil, err
+		}
 
 		tx = scope.GetResource(cnn.sessionName)
 	}

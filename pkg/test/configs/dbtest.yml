@@ -1,0 +1,17 @@
+root:
+  startup:
+    session_name: "unittest"
+
+  token_auth:
+    #options: none, jwt
+    factory_type: "jwt"
+    #minutos
+    expiration: 1
+    jwt_key: "1qazxsw23edcvfr45tgbnhy6"
+
+  databases:
+    #list of repositories. The childs of this elements are the session names.
+    unittest:
+      type: "sql"
+      driver: "sqlite3"
+      datasource: "../../dbs/unit_test.db3"

@@ -28,10 +28,8 @@ func NewMemoryMessageRepository () *memoryMessageRepository {
 
 func (m *memoryMessageRepository) CreateMessage(ctx context.Context, msg *models.Message) error {
 	msgId := atomic.AddInt32(&m.idSeq, 1)
-	cntId := atomic.AddInt32(&m.idSeq, 1)
 
 	msg.SetId(int(msgId))
-	msg.Content.SetId(int(cntId))
 	msg.Timestamp = time.Now().UTC().Format("2006-01-02T15:04:05Z")
 
 	copy := models.Message{}
@@ -43,7 +41,7 @@ func (m *memoryMessageRepository) CreateMessage(ctx context.Context, msg *models
 		copy.Content = &models.VideoData{}
 
 	case models.ContentType_Text:
-		copy.Content = &models.Text{}
+		copy.Content = &models.TextData{}
 	}
 
 	helpers.Copy(msg, &copy)
