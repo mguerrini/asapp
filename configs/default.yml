@@ -5,28 +5,33 @@ root:
 
   repositories:
     #options: memory, sql
-    factory_type: "memory"
+    factory_type: "sql"
 
   token_auth:
     #options: none, jwt
-    factory_type: "jwt"
+    factory_type: "none"
     #minutos
     expiration: 5
     jwt_key: "1qazxsw23edcvfr45tgbnhy6"
 
   authentication:
     #options: none, database
-    factory_type: "none"
+    factory_type: "database"
+
+  user:
+    #options: hash, plain
+    password: "plain"
 
   databases:
     #list of repositories. The childs of this elements are the session names.
     test:
-      type: "none"
-    local:
       type: "sql"
-      connection_string: ""
+      driver: "sqlite3"
+      datasource: "./dbs/test.db3"
+
     production:
       type: "sql"
-      connection_string: ""
+      driver: "sqlite3"
+      datasource: "./dbs/production.db3"
 
 

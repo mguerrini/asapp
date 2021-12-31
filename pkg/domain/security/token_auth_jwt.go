@@ -67,14 +67,7 @@ func (j jwtTokenAuthentication) GenerateToken(ctx context.Context, user string) 
 
 func (j jwtTokenAuthentication) ValidateToken(ctx context.Context, token string) TokenStatus {
 	//remove bearer Prefix
-	auxToken := strings.ToLower(token)
-	auxToken = strings.TrimPrefix(auxToken, "bearer")
-
-	trim := len(token) - len(auxToken)
-	if trim > 0 {
-		token = token[trim:]
-		token = strings.TrimSpace(token)
-	}
+	token = BearerAuthHeader(token)
 
 	claims := &Claims{}
 
@@ -91,4 +84,22 @@ func (j jwtTokenAuthentication) ValidateToken(ctx context.Context, token string)
 	}
 
 	return SecurityTokenStatus_OK
+}
+
+func BearerAuthHeader(authHeader string) string {
+	if authHeader == "" {
+		return ""
+	}
+
+	parts := strings.Split(authHeader, "Bearer")
+	if len(parts) != 2 {
+		return ""
+	}
+
+	token := strings.TrimSpace(parts[1])
+	if len(token) < 1 {
+		return ""
+	}
+
+	return token
 }

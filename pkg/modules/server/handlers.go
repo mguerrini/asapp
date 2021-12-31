@@ -2,8 +2,10 @@ package server
 
 import (
 	"context"
-	"github.com/challenge/pkg/helpers"
+	"fmt"
+	"github.com/challenge/pkg/modules/logger"
 	"net/http"
+	"runtime/debug"
 )
 
 type HttpHandler struct {
@@ -77,8 +79,21 @@ func (h *HttpHandler) AddHandler(httpMethod string, handle *stageHttpHandler) *H
 
 
 func (h *HttpHandler) Handle (w http.ResponseWriter, r *http.Request) {
+	err := h.handle(w, r)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func (h *HttpHandler) handle (w http.ResponseWriter, r *http.Request) (err error) {
 	//default error handler
-	defer helpers.Recover()
+	defer func() {
+		if r := recover(); r != nil {
+			logger.Errorf("[Custom Recovery] panic recovered: %s %s", fmt.Errorf("%s", r), debug.Stack(), r)
+			err = r.(error)
+		}
+	}()
 
 	method := r.Method
 
@@ -89,13 +104,16 @@ func (h *HttpHandler) Handle (w http.ResponseWriter, r *http.Request) {
 			h.PostRoot.doHandle(r.Context(), w, r)
 		} else {
 			http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
-			return
+			return nil
 		}
 	} else {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
-		return
+		return nil
 	}
+
+	return nil
 }
+
 
 func (h *stageHttpHandler) doHandle (ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	h.Handler(ctx, w, r, h)

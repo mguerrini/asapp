@@ -26,6 +26,7 @@ func (h *Handler) Login(ctx context.Context, w http.ResponseWriter, r *http.Requ
 	err = h.authServices.ValidateUser(ctx, cred)
 	if err != nil {
 		http.Error(w, err.Error(), helpers.GetStatusCodeOr(err, http.StatusUnauthorized))
+		return
 	}
 
 	profile, err := h.userServices.GetUserProfileByUsername(ctx, cred.Username)

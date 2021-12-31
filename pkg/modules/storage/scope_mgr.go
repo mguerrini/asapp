@@ -34,7 +34,7 @@ func TransactionalScopeManagerSingleton() *TransactionalScopeManager {
 
 
 
-func (mgr *TransactionalScopeManager) Begin(ctx context.Context)  ITransactionScope {
+func (mgr *TransactionalScopeManager) Begin(ctx *context.Context)  ITransactionScope {
 	tx := NewTransactionScope()
 
 	mgr.sync.Lock()
@@ -47,11 +47,11 @@ func (mgr *TransactionalScopeManager) Begin(ctx context.Context)  ITransactionSc
 }
 
 //Commit current tx scope
-func (mgr *TransactionalScopeManager) Commit(ctx context.Context)   {
+func (mgr *TransactionalScopeManager) commit(ctx context.Context)   {
 	mgr.sync.Lock()
 	defer mgr.sync.Unlock()
 
-	scopeContainer := mgr.getScopes(ctx)
+	scopeContainer := mgr.getScopes(&ctx)
 
 	if scopeContainer == nil || len(scopeContainer.scopes) == 0 {
 		return
@@ -66,11 +66,11 @@ func (mgr *TransactionalScopeManager) Commit(ctx context.Context)   {
 }
 
 //Rollback current tx scope
-func (mgr *TransactionalScopeManager) Rollback(ctx context.Context)   {
+func (mgr *TransactionalScopeManager) rollback(ctx context.Context)   {
 	mgr.sync.Lock()
 	defer mgr.sync.Unlock()
 
-	scopeContainer := mgr.getScopes(ctx)
+	scopeContainer := mgr.getScopes(&ctx)
 
 	if scopeContainer == nil || len(scopeContainer.scopes) == 0 {
 		return
@@ -85,23 +85,27 @@ func (mgr *TransactionalScopeManager) Rollback(ctx context.Context)   {
 }
 
 func (mgr *TransactionalScopeManager) GetCurrentScope(ctx context.Context) ITransactionScope {
-	scopes:= mgr.getScopes(ctx)
+	scopes:= mgr.getScopes(&ctx)
 
-	if len(scopes.scopes) == 0 {
+	if scopes == nil || len(scopes.scopes) == 0 {
 		return nil
 	} else {
 		return scopes.scopes[len(scopes.scopes) - 1]
 	}
 }
 
-func (mgr *TransactionalScopeManager) getScopes(ctx context.Context) *scopesEnvelop {
-	scopes := ctx.Value(CurrentTransactionScopeKey).(*scopesEnvelop)
+func (mgr *TransactionalScopeManager) getScopes(ctx *context.Context) *scopesEnvelop {
+	if ctx == nil {
+		return nil
+	}
+	scopes := (*ctx).Value(CurrentTransactionScopeKey)
 
 	if scopes == nil {
 		scopes = &scopesEnvelop{scopes: make([]ITransactionScope, 0)}
-		ctx = context.WithValue(ctx, CurrentTransactionScopeKey, scopes)
+		newCtx := context.WithValue(*ctx, CurrentTransactionScopeKey, scopes)
+		ctx = &newCtx
 	}
 
-	scopes = ctx.Value(CurrentTransactionScopeKey).(*scopesEnvelop)
-	return scopes
+	scopes = (*ctx).Value(CurrentTransactionScopeKey)
+	return scopes.(*scopesEnvelop)
 }

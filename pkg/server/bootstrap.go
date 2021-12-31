@@ -16,6 +16,6 @@ func StartServer() {
 
 func FinishServer() {
 	//close connections
-	storage.DBManagerSingleton().CloseAll()
+	storage.DBManagerSingleton().Dispose()
 }
 

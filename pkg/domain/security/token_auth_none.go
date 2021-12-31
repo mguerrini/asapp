@@ -2,7 +2,6 @@ package security
 
 import (
 	"context"
-	"strings"
 )
 
 type noneTokenAuthentication struct {
@@ -22,15 +21,7 @@ func (t noneTokenAuthentication) GenerateToken(ctx context.Context, user string)
 }
 
 func (t noneTokenAuthentication) ValidateToken(ctx context.Context, token string) TokenStatus {
-	auxToken := strings.ToLower(token)
-	auxToken = strings.TrimPrefix(auxToken, "bearer")
-
-	trim := len(token) - len(auxToken)
-	if trim > 0 {
-		token = token[trim:]
-		token = strings.TrimSpace(token)
-	}
-
+	token = BearerAuthHeader(token)
 	if token == "" || token == "0000000000-0000000000-0000000000-0000000000"{
 		return SecurityTokenStatus_OK
 	} else {
