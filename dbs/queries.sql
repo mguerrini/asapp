@@ -1,16 +1,13 @@
 //Get Messages
 SELECT m.*,
        CASE
-           WHEN txt.Id IS NOT NULL THEN 'text'
-           WHEN vd.Id IS NOT NULL THEN 'video'
-           WHEN img.Id IS NOT NULL THEN 'image'
-       END as ContentType,
-       txt.Id AS text_Id,
+           WHEN txt.MessageId IS NOT NULL THEN 'text'
+           WHEN vd.MessageId IS NOT NULL THEN 'video'
+           WHEN img.MessageId IS NOT NULL THEN 'image'
+           END as ContentType,
        txt.Text AS text_Text,
-       vd.Id AS video_Id,
        vd.Url AS video_Url,
        vd.Source AS video_Source,
-       img.Id AS image_Id,
        img.Url AS image_Url,
        img.Height AS image_Height,
        img.Width AS image_Width
@@ -32,7 +29,7 @@ VALUES (
     @senderId,
     @recipientId,
     datetime('now')
-    );
+);
 
 
 // IMAGE
@@ -50,7 +47,6 @@ VALUES (
 );
 
 
-
 // TEXT
 INSERT INTO TextContent (
     MessageId,
@@ -62,19 +58,17 @@ VALUES (
 );
 
 
-
 //VIDEO
-
 INSERT INTO VideoContent (
-     MessageId,
-     Url,
-     Source
- )
- VALUES (
-     @MessageId,
-     @Url,
-     @Source
- );
+    MessageId,
+    Url,
+    Source
+)
+    VALUES (
+    @MessageId,
+    @Url,
+    @Source
+);
 
 
 // User
@@ -83,8 +77,8 @@ INSERT INTO Users (
     Password
 )
 VALUES (
-   @Username,
-   @Password
+    @Username,
+    @Password
 );
 
 

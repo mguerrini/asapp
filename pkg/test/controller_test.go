@@ -68,7 +68,7 @@ func Test_InvalidLogin(t *testing.T) {
 	status, body := core.LoginRequest(username, pass)
 
 	if status != http.StatusNotFound {
-		t.Error("The user not exists")
+		t.Error("The user exists")
 		return
 	}
 
@@ -103,13 +103,13 @@ func Test_InvalidLogin(t *testing.T) {
 	}
 }
 
-func Test_SendVideoMessage(t *testing.T) {
+func Test_SendAndGetVideoMessage(t *testing.T) {
 	config.JoinSingleton("./pkg/test/configs", "dbtest.yml")
 
-	username1 := "user11"
+	username1 := "user3"
 	pass1 := "333333"
 
-	username2 := "user12"
+	username2 := "user4"
 	pass2 := "444444"
 
 	w, srv := core.StartTestServer()
@@ -164,5 +164,125 @@ func Test_SendVideoMessage(t *testing.T) {
 	}
 }
 
+func Test_SendAndGetImageMessage(t *testing.T) {
+	config.JoinSingleton("./pkg/test/configs", "dbtest.yml")
 
+	username1 := "user5"
+	pass1 := "555555"
+
+	username2 := "user6"
+	pass2 := "666666"
+
+	w, srv := core.StartTestServer()
+	defer core.StopTestServer(w, srv)
+
+	//create 2 users
+	_, body1 := core.CreateUserRequest(username1, pass1)
+	_, body2 := core.CreateUserRequest(username2, pass2)
+
+	j := helpers.NewJsonHelper()
+	userId1, _ := j.GetIntFromJson(body1, "id")
+	userId2, _ := j.GetIntFromJson(body2, "id")
+
+	//Login user1
+	_, loginBody1 := core.LoginRequest(username1, pass1)
+	token1, _ := j.GetStringFromJson(loginBody1, "token")
+
+	//Login user2
+	_, loginBody2 := core.LoginRequest(username2, pass2)
+	token2, _ := j.GetStringFromJson(loginBody2, "token")
+
+	//send message with valid token
+	status, imageBody := core.SendImageMessageRequest(*userId1, *userId2, 100, 200, "http://videos.com/video1", *token1)
+
+	if status != http.StatusOK {
+		t.Error("Error creating image")
+		return
+	}
+
+	imageMessageId, _ := j.GetIntFromJson(imageBody, "id")
+
+	//read message user 2
+	count := 1
+	status, bodyMessage := core.GetMessagesRequest(*userId2, *imageMessageId, &count, token2)
+
+	if status != http.StatusOK {
+		t.Error("Error reading image message")
+		return
+	}
+
+	getMessageId, _ := j.GetIntFromJson(bodyMessage, "[0].id")
+	getImageType, _ := j.GetStringFromJson(bodyMessage, "[0].content.type")
+
+	if *getMessageId != *imageMessageId {
+		t.Error("Error getting image message")
+		return
+	}
+
+	if *getImageType != "image" {
+		t.Error("Error getting image message")
+		return
+	}
+}
+
+func Test_SendAndGetTextMessage(t *testing.T) {
+	config.JoinSingleton("./pkg/test/configs", "dbtest.yml")
+
+	username1 := "user7"
+	pass1 := "777777"
+
+	username2 := "user8"
+	pass2 := "888888"
+
+	w, srv := core.StartTestServer()
+	defer core.StopTestServer(w, srv)
+
+	//create 2 users
+	_, body1 := core.CreateUserRequest(username1, pass1)
+	_, body2 := core.CreateUserRequest(username2, pass2)
+
+	j := helpers.NewJsonHelper()
+	userId1, _ := j.GetIntFromJson(body1, "id")
+	userId2, _ := j.GetIntFromJson(body2, "id")
+
+	//Login user1
+	_, loginBody1 := core.LoginRequest(username1, pass1)
+	token1, _ := j.GetStringFromJson(loginBody1, "token")
+
+	//Login user2
+	_, loginBody2 := core.LoginRequest(username2, pass2)
+	token2, _ := j.GetStringFromJson(loginBody2, "token")
+
+	//send message with valid token
+	status, textBody := core.SendTextMessageRequest(*userId1, *userId2, "Este es un mensaje de texto.", *token1)
+
+	if status != http.StatusOK {
+		t.Error("Error creating text message")
+		return
+	}
+
+	textMessageId, _ := j.GetIntFromJson(textBody, "id")
+
+	//read message user 2
+	count := 1
+	status, bodyMessage := core.GetMessagesRequest(*userId2, *textMessageId, &count, token2)
+
+	if status != http.StatusOK {
+		t.Error("Error reading text message")
+		return
+	}
+
+	getMessageId, _ := j.GetIntFromJson(bodyMessage, "[0].id")
+	getTextType, _ := j.GetStringFromJson(bodyMessage, "[0].content.type")
+
+	if *getMessageId != *textMessageId {
+		t.Error("Error getting text message")
+		return
+	}
+
+	if *getTextType != "text" {
+		t.Error("Error getting text message")
+		return
+	}
+}
 

@@ -33,9 +33,7 @@ func (s *sqlUserRepository) CreateUser(ctx context.Context, user models.User) (i
 	VALUES (
 		@Username,
 		@Password
-	);
-
-	SELECT last_insert_rowid();`
+	);`
 
 	res, err := s.dbCnn.Exec(ctx, query, user.Username, user.Password)
 

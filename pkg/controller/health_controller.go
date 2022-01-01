@@ -15,6 +15,6 @@ func (h *Handler) Check(ctx context.Context, w http.ResponseWriter, r *http.Requ
 	if err == nil {
 		helpers.RespondJSON(w, models.Health{Status: "ok"})
 	} else {
-		helpers.RespondJSON(w, models.Health{Status: "fail"})
+		helpers.RespondJSON(w, models.Health{Status: "failed"})
 	}
 }

@@ -17,10 +17,17 @@ const (
 )
 
 func StartHttpServer(wg *sync.WaitGroup) *http.Server {
+	h := http.NewServeMux()
+	srv := StartHttpServerWith(wg, h)
+	return srv
+}
+
+func StartHttpServerWith(wg *sync.WaitGroup, h *http.ServeMux)  *http.Server {
 	StartServer() //initialize components
 
 	//create server
 	srv := &http.Server{Addr: ":" + ServerPort}
+	srv.Handler = h
 
 	//create handler
 	controller := controller.NewController() // controller.Handler{}
@@ -32,19 +39,19 @@ func StartHttpServer(wg *sync.WaitGroup) *http.Server {
 	checkEndpointHandler.AddInterceptorFunc(http.MethodPost, handler.ErrorHandler)
 	checkEndpointHandler.AddHandlerFunc(http.MethodPost, controller.Check)
 
-	http.HandleFunc(CheckEndpoint, checkEndpointHandler.Handle)
+	h.HandleFunc(CheckEndpoint, checkEndpointHandler.Handle)
 
 	// USERS
 	usersHandler := server.NewhttpHandler()
 	//Commit only with response code = 200, with other status code: Rollback
 	usersHandler.AddInterceptorFunc(http.MethodPost, handler.TransactionScopeHandler)
 	usersHandler.AddHandlerFunc(http.MethodPost, controller.CreateUser)
-	http.HandleFunc(UsersEndpoint, usersHandler.Handle)
+	h.HandleFunc(UsersEndpoint, usersHandler.Handle)
 
 	//LOGIN
 	authHandler := server.NewhttpHandler()
 	authHandler.AddHandlerFunc(http.MethodPost, controller.Login)
-	http.HandleFunc(LoginEndpoint, authHandler.Handle)
+	h.HandleFunc(LoginEndpoint, authHandler.Handle)
 
 	//MESSAGES
 	msgsHandler := server.NewhttpHandler()
@@ -55,7 +62,7 @@ func StartHttpServer(wg *sync.WaitGroup) *http.Server {
 
 	msgsHandler.AddInterceptorFunc(http.MethodGet, handler.ValidateTokenHandler)
 	msgsHandler.AddHandlerFunc(http.MethodGet, controller.GetMessages)
-	http.HandleFunc(MessagesEndpoint, msgsHandler.Handle)
+	h.HandleFunc(MessagesEndpoint, msgsHandler.Handle)
 
 	go func() {
 		defer FinishServer() //finish components

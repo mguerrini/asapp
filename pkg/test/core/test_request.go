@@ -2,38 +2,12 @@ package core
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/challenge/pkg/models"
-	"github.com/challenge/pkg/modules/logger"
-	"github.com/challenge/pkg/server"
 	"io/ioutil"
 	"net/http"
-	"sync"
-	"time"
 )
-
-func StopTestServer(w *sync.WaitGroup, srv *http.Server) {
-	if r := recover(); r != nil {
-		logger.Error("Error on finished test" ,r.(error))
-	}
-
-	srv.Shutdown(context.TODO())
-	w.Wait()
-}
-
-func StartTestServer () (*sync.WaitGroup, *http.Server) {
-	httpServerExitDone := &sync.WaitGroup{}
-	httpServerExitDone.Add(1)
-
-	srv := server.StartHttpServer(httpServerExitDone)
-
-	//wait 1 second
-	time.Sleep(time.Duration(1) * time.Second)
-
-	return httpServerExitDone, srv
-}
 
 
 func CreateUserRequest(username string, pass string) (int, string) {

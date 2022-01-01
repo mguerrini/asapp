@@ -17,8 +17,9 @@ type TransactionalScopeManager struct {
 	sync sync.Mutex
 }
 
-type scopesEnvelop struct {
-	scopes []ITransactionScope
+type txBoundary struct {
+	tx     ITransactionScope
+	parent context.Context
 }
 
 func TransactionalScopeManagerSingleton() *TransactionalScopeManager {
@@ -41,50 +42,38 @@ func (mgr *TransactionalScopeManager) Begin(ctx context.Context, opt *sql.TxOpti
 	mgr.sync.Lock()
 	defer mgr.sync.Unlock()
 
-	newCtx, scopeContainer := mgr.getScopes(ctx)
-	scopeContainer.scopes = append(scopeContainer.scopes, tx)
+	scope := txBoundary{
+		tx:     tx,
+		parent: ctx,
+	}
+	newCtx := context.WithValue(ctx, CurrentTransactionScopeKey, scope)
 
 	return newCtx, tx
 }
 
 // Finish the last TxScope TODO, search and remove
-func (mgr *TransactionalScopeManager) Finished(ctx context.Context, scope ITransactionScope)   {
+func (mgr *TransactionalScopeManager) Finished(ctx context.Context, scope ITransactionScope) context.Context  {
 	mgr.sync.Lock()
 	defer mgr.sync.Unlock()
 
-	_, scopeContainer := mgr.getScopes(ctx)
+	txScope := ctx.Value(CurrentTransactionScopeKey)
 
-	if scopeContainer == nil || len(scopeContainer.scopes) == 0 {
-		return
+	if txScope == nil{
+		return ctx
 	}
 
-	//get last scope
-	scopeContainer.scopes = scopeContainer.scopes[0:len(scopeContainer.scopes)-1]
+	aux := txScope.(txBoundary)
+
+	return aux.parent
 }
 
 
 func (mgr *TransactionalScopeManager) GetCurrentScope(ctx context.Context) ITransactionScope {
-	_, scopes := mgr.getScopes(ctx)
+	txScope := ctx.Value(CurrentTransactionScopeKey)
 
-	if scopes == nil || len(scopes.scopes) == 0 {
+	if txScope == nil{
 		return nil
-	} else {
-		return scopes.scopes[len(scopes.scopes) - 1]
 	}
-}
-
-func (mgr *TransactionalScopeManager) getScopes(ctx context.Context) (context.Context, *scopesEnvelop) {
-	if ctx == nil {
-		return nil, nil
-	}
-	scopes := ctx.Value(CurrentTransactionScopeKey)
-
-	if scopes == nil {
-		scopes = &scopesEnvelop{scopes: make([]ITransactionScope, 0)}
-		newCtx := context.WithValue(ctx, CurrentTransactionScopeKey, scopes)
-		ctx = newCtx
-	}
-
-	scopes = ctx.Value(CurrentTransactionScopeKey)
-	return ctx, scopes.(*scopesEnvelop)
+	aux := txScope.(txBoundary)
+	return aux.tx
 }

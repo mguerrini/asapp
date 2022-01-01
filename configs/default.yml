@@ -9,7 +9,7 @@ root:
 
   token_auth:
     #options: none, jwt
-    factory_type: "none"
+    factory_type: "jwt"
     #minutos
     expiration: 5
     jwt_key: "1qazxsw23edcvfr45tgbnhy6"
