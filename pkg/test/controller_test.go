@@ -286,3 +286,42 @@ func Test_SendAndGetTextMessage(t *testing.T) {
 	}
 }
 
+func Test_InvalidToken(t *testing.T) {
+	config.JoinSingleton("./pkg/test/configs", "dbtest.yml")
+
+	username1 := "user9"
+	pass1 := "999999"
+
+	w, srv := core.StartTestServer()
+	defer core.StopTestServer(w, srv)
+
+	//create 2 users
+	_, body1 := core.CreateUserRequest(username1, pass1)
+
+	j := helpers.NewJsonHelper()
+	userId1, _ := j.GetIntFromJson(body1, "id")
+
+	//Login user1
+	_, loginBody1 := core.LoginRequest(username1, pass1)
+	token1, _ := j.GetStringFromJson(loginBody1, "token")
+	token := *token1
+
+	lastChar := token[len(token)-1]
+	if lastChar != 'A' {
+		lastChar = 'A'
+	} else {
+		lastChar = 'B'
+	}
+
+	token = token[:len(token)-1]
+	token = token + string(lastChar)
+
+	//send message with valid token
+	status, _ := core.SendVideoMessageRequest(*userId1, 2, "http://videos.com/video1", "vimeo", token)
+
+	if status == http.StatusOK {
+		t.Error("Error validating token video")
+		return
+	}
+}
+
