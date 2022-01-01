@@ -18,6 +18,7 @@ type IAuthenticationFactory interface {
 
 type IAuthentication interface {
 	Authenticate(ctx context.Context, cred models.Login) error
+	GeneratePassword(ctx context.Context, password string) (string, error)
 }
 
 

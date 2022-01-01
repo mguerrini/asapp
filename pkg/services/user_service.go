@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"github.com/challenge/pkg/domain/security"
 	"github.com/challenge/pkg/models"
 	"github.com/challenge/pkg/models/errors"
 	"github.com/challenge/pkg/repository"
@@ -9,13 +10,16 @@ import (
 
 type UserServices struct {
 	userRepository repository.IUserRepository
+	authentication security.IAuthentication
 }
 
 func NewUserServices (sessionName string) *UserServices {
 	rep := repository.RepositoryFactory().CreateUserRepository(sessionName)
+	auth := security.AuthenticationFactory().Create(sessionName)
 
 	return &UserServices{
 		userRepository: rep,
+		authentication: auth,
 	}
 }
 
@@ -40,6 +44,15 @@ func (u *UserServices) CreateUser(ctx context.Context, user models.User) (*model
 	if exist {
 		return nil, errors.NewBadRequestMsg("The username already exists.")
 	}
+
+	//create pass
+	newPass, err := u.authentication.GeneratePassword(ctx, user.Password)
+
+	if err != nil {
+		return nil, err
+	}
+
+	user.Password = newPass
 
 	//create
 	id, errC := u.userRepository.CreateUser(ctx, user)

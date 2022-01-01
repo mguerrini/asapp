@@ -17,10 +17,8 @@ root:
   authentication:
     #options: none, database
     factory_type: "database"
-
-  user:
-    #options: hash, plain
-    password: "plain"
+    #options: plain, hash
+    password: "hash"
 
   databases:
     #list of repositories. The childs of this elements are the session names.
